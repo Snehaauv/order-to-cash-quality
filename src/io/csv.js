@@ -31,11 +31,7 @@ const parseLine = (line) => {
   return fields;
 };
 
-/**
- * Deliberately does NOT trim field values. Trailing whitespace in CustomerName is one of the
- * conditions under test, so trimming here would destroy evidence before any rule sees it.
- * Normalisation is a decision each rule makes explicitly - see src/domain/text.js.
- */
+// Values are not trimmed: whitespace is part of what the rules check.
 export const parseCsv = (text) => {
   const lines = text.split(/\r?\n/).filter((line) => line.length > 0);
   if (lines.length === 0) return { header: [], rows: [] };

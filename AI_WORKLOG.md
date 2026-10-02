@@ -213,10 +213,10 @@ Everything above is about not trusting the model. The deeper risk is not trustin
 because a validation suite can rot silently — a renamed column, an over-eager normaliser, a rule
 that stopped matching. A green run and clean data look identical.
 
-So the suite is mutation-tested. `npm run mutation` injects twelve known defects — re-denominated
+So the suite is mutation-tested. `npm run mutation` injects thirteen known defects — re-denominated
 currency, one-cent drift, a dropped step, a duplicate, a +05:30 shift, a future date, a dropped
-order, an orphan, a negative amount, a resequenced step, a leaked cart, an undeclared activity — and
-fails if any survives. Currently **12/12 killed**.
+order, an orphan, a negative amount, a resequenced step, a leaked cart, an undeclared activity, a stale LastModified — and
+fails if any survives. Currently **13/13 killed**.
 
 That is my answer to "what stops an LLM silently passing a real defect": nothing the model says is
 trusted, and every rule — hand-written or generated — must keep proving it still detects.

@@ -42,8 +42,7 @@ export const valueRules = [
       const wrong = eventCase.events.filter((event) => event.currency !== order.currency);
       if (wrong.length === 0) return null;
 
-      // Reported once per case rather than once per event: the cause is a single mis-mapped field
-      // in the sync, and four findings for one bug makes the report harder to act on.
+      // Reported once per case, not per event.
       return {
         summary: `Order is denominated in ${order.currency} but ${wrong.length} of ${eventCase.events.length} Analytics event(s) say ${[...new Set(wrong.map((e) => e.currency))].join(', ')}. Revenue for this case is silently re-denominated downstream.`,
         evidence: {

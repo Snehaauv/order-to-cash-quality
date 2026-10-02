@@ -2,14 +2,7 @@ import { readCsv } from '../io/csv.js';
 import { parseMinorUnits, normaliseCurrency } from './money.js';
 import { parseInstant } from './time.js';
 
-/**
- * Builds the single joined view that every rule reads from.
- *
- * Parsing happens once, here, and the parse outcome is kept on the record rather than thrown away:
- * a value that could not be parsed is itself a finding, so rules need to distinguish "absent",
- * "present but unparseable" and "present and valid". Rules that silently coerce a bad value would
- * report a misleading comparison failure instead of the actual data-quality fault.
- */
+// Builds the joined OMS/event view that every rule reads. Parse results are kept so rules can tell absent, invalid and valid apart.
 
 const toOrder = (row) => ({
   line: row.__line,
@@ -52,8 +45,7 @@ export const buildModel = ({ ordersPath, eventsPath, now = new Date() }) => {
     caseById.get(event.caseId).events.push(event);
   }
 
-  // Sorting by timestamp - not by file order - is what makes the ORD-1010 ordering defect visible.
-  // Events with an unparseable timestamp sort last so they never masquerade as the earliest event.
+  // Sorted by timestamp; unparseable timestamps sort last.
   for (const eventCase of caseById.values()) {
     eventCase.events.sort((a, b) => {
       if (!a.timestamp.ok) return 1;

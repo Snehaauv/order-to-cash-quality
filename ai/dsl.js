@@ -1,18 +1,4 @@
-/**
- * A restricted check vocabulary that LLM-proposed rules must be expressed in, and the compiler that
- * turns one into an executable rule.
- *
- * The obvious design is to let the model emit JavaScript and `eval` it. That is a supply-chain hole
- * in a quality gate: a model that can write arbitrary code into your test suite can also write a
- * rule that always returns "no findings", and it would look plausible in review. Worse, prompt
- * content is attacker-reachable in any real deployment - the contract text might come from a wiki.
- *
- * So the model never emits code. It emits a declaration from the vocabulary below, and this file is
- * the only thing that turns a declaration into behaviour. An unknown check type is rejected rather
- * than interpreted. The cost is expressiveness: a genuinely novel check cannot be generated, only
- * proposed in prose for a human to implement. That trade is deliberate - I would rather lose a rule
- * than execute model output.
- */
+// Restricted vocabulary for LLM-proposed rules, and its compiler. The model emits declarations, never code.
 
 import { SCOPE, SEVERITY } from '../src/reconcile/engine.js';
 import { parseMinorUnits } from '../src/domain/money.js';
@@ -26,9 +12,7 @@ const NORMALISERS = {
   name: (v) => normaliseName(v),
 };
 
-// Only these paths are addressable. A typo or a hallucinated column fails at compile time with a
-// clear message instead of silently reading `undefined` and comparing it to `undefined`, which
-// would make the rule pass for every row.
+// Only these field paths are addressable; anything else fails at compile time.
 const FIELD_PATHS = {
   'order.orderId': (ctx) => ctx.order?.orderId,
   'order.customerId': (ctx) => ctx.order?.customerId,
@@ -94,8 +78,7 @@ const CHECKS = {
   },
 
   matchesPattern: ({ field, pattern }) => {
-    // The pattern is model-supplied, so it is length-capped and compiled once here. An unbounded
-    // model-authored regex is a denial-of-service vector against your own CI.
+    // Model-supplied pattern: length-capped and compiled once.
     if (String(pattern).length > 120) throw new Error('pattern exceeds the 120-character limit');
     const regex = new RegExp(pattern);
     return (ctx) => {
@@ -128,9 +111,6 @@ export const validateSpec = (spec) => {
     problems.push(`generated rules may only use scope "${SCOPE.ORDER}" or "${SCOPE.PAIR}"`);
   }
 
-  // Field paths are validated here rather than at evaluation time. A hallucinated column reached at
-  // runtime reads as undefined, and a comparison of undefined to undefined passes - so the rule
-  // would be accepted, run clean, and report coverage of a field that does not exist.
   for (const key of ['left', 'right', 'field', 'earlier', 'later']) {
     const path = spec?.check?.[key];
     if (path !== undefined && !FIELD_PATHS[path]) {
@@ -141,11 +121,7 @@ export const validateSpec = (spec) => {
   return problems;
 };
 
-/**
- * Compiles a validated spec into the same rule shape the hand-written rules use, so generated and
- * authored rules run through one executor and are reported identically. A generated rule gets no
- * privileges and no special path.
- */
+// Compiles a validated spec into the same rule shape as the hand-written rules.
 export const compileSpec = (spec) => {
   const problems = validateSpec(spec);
   if (problems.length) {
@@ -171,10 +147,7 @@ export const compileSpec = (spec) => {
 
       if (!order) return null;
 
-      // An order-scoped check runs once against the order. A pair-scoped check runs per event, and
-      // a case with no events is vacuously fine: there is no event to be wrong. Evaluating once
-      // with a null event instead would read every event field as empty and report a defect on
-      // every cart - the check would be measuring absence of data as badness of data.
+      // Pair scope runs once per event; a case with no events has nothing to check.
       if (spec.scope === SCOPE.ORDER) {
         const reason = predicate({ order, event: null });
         return reason ? { summary: reason, evidence: { field: spec.check.left ?? spec.check.field } } : null;

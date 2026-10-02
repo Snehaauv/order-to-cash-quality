@@ -4,18 +4,7 @@ import { parseMinorUnits, CURRENCY_PATTERN } from '../src/domain/money.js';
 import { ISO_UTC_PATTERN } from '../src/domain/time.js';
 import { EXPECTED_VARIANT } from '../src/domain/lifecycle.js';
 
-/**
- * A stand-in for the sync/ingest API, built over the same CSVs the reconciler reads.
- *
- * The brief allows either a public API or a local mock. A mock is the better choice here because the
- * interesting API tests are negative ones - what does ingest do with a malformed payload, an unknown
- * order, a bad currency - and no public sandbox will reproduce this contract. The validation below
- * is deliberately the same set of invariants the reconciler enforces after the fact: an ingest
- * endpoint that accepts data its own reconciliation will later reject is the bug this whole exercise
- * is about.
- *
- * Zero dependencies, so `npm run mock-api` works on a clean clone with nothing installed.
- */
+// Mock sync/ingest API over the challenge CSVs. Validates events against the sync contract.
 
 const DECLARED_ACTIVITIES = new Set(Object.values(EXPECTED_VARIANT).flat());
 
@@ -62,8 +51,6 @@ const validateEvent = (event) => {
   if (require('activity') && !DECLARED_ACTIVITIES.has(event.activity)) {
     errors.push({ field: 'activity', code: 'enum', allowed: [...DECLARED_ACTIVITIES] });
   }
-  // Required because process mining attributes every activity to a resource. An event with no
-  // actor is not merely untidy - it silently joins an "unknown" bucket in every handover analysis.
   require('resourceUser');
 
   if (require('timestamp') && !ISO_UTC_PATTERN.test(event.timestamp)) {
@@ -164,8 +151,7 @@ export const createApp = ({ state = reconcile() } = {}) => {
         else accepted.push(event);
       });
 
-      // All-or-nothing. A partial accept leaves the event log in a state the reconciler will
-      // immediately flag as non-conformant, and the caller has no way to know which half landed.
+      // All-or-nothing: one invalid event rejects the whole batch.
       if (rejected.length) {
         return json(res, 422, { error: 'validation_failed', accepted: 0, rejected });
       }

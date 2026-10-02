@@ -1,14 +1,5 @@
 import { test, expect } from '../../framework/fixtures/index.js';
 
-/**
- * API-layer tests against the mock sync/ingest service.
- *
- * The weight is deliberately on the negative paths. A happy-path ingest test tells you the endpoint
- * works; the rejection tests tell you the endpoint defends the contract, and every defect in
- * DEFECT_REPORT.md is data that an ingest endpoint should have refused at the door. If ingest had
- * rejected the EUR-to-USD event, nobody would be reconciling it after the fact.
- */
-
 const validEvent = (overrides = {}) => ({
   caseId: 'ORD-1001',
   activity: 'Order Shipped',
@@ -41,7 +32,7 @@ test.describe('contract and read paths', () => {
   test('a known order resolves with its source values', async ({ api }) => {
     const { status, body } = await api.getOrder('ORD-1008');
     expect(status).toBe(200);
-    // The currency the OMS holds, which is the value the event log contradicts - see D-04.
+    // The OMS currency for this order.
     expect(body).toMatchObject({ orderId: 'ORD-1008', currency: 'EUR', amount: '5000.00' });
   });
 
@@ -58,8 +49,7 @@ test.describe('contract and read paths', () => {
   });
 
   test('an orphan case is still readable - the API must not hide the data defect', async ({ api }) => {
-    // ORD-9999 has events but no order. The API returning them is correct: suppressing the orphan
-    // would hide D-09 from anyone querying the platform.
+    // Orphan events are returned, not hidden.
     const { status, body } = await api.getCaseEvents('ORD-9999');
     expect(status).toBe(200);
     expect(body.events).toHaveLength(4);
@@ -106,8 +96,7 @@ test.describe('ingest validation', () => {
   }
 
   test('a batch with one bad event accepts none of it', async ({ api }) => {
-    // Asserting the all-or-nothing contract. A partial accept would leave the event log in exactly
-    // the half-synced state that produces the missing-step defects in this report.
+    // A batch with one invalid event is rejected in full.
     const { status, body } = await api.ingest([validEvent(), validEvent({ currency: 'NOPE' })]);
     expect(status).toBe(422);
     expect(body.accepted).toBe(0);

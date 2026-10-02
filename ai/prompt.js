@@ -14,16 +14,7 @@ Status is one of Cart, Confirmed, Shipped, Delivered, Cancelled, Returned.
 Currency is ISO-4217. OrderAmount and Amount are decimal(2).
 `.trim();
 
-/**
- * The prompt asks for coverage gaps, not for verdicts.
- *
- * This is the division of labour the whole artifact rests on: a language model is good at reading a
- * contract and noticing that nothing enforces clause seven, and bad at deciding whether a given row
- * is a defect. So it is pointed at recall - what did we forget - while precision stays in
- * deterministic code. It is told the rules that already exist so it does not re-propose them, and
- * it is constrained to a fixed vocabulary so whatever it returns can be compiled rather than
- * executed.
- */
+// Asks the model for gaps in the existing rules, expressed in the DSL vocabulary.
 export const buildPrompt = () => {
   const existing = allRules
     .map((rule) => `  ${rule.id} [${rule.dimension}] ${rule.title}`)

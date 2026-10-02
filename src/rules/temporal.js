@@ -42,8 +42,7 @@ export const temporalRules = [
 
       const delta = classifyDelta(order.deliveredDate.ms, delivered.timestamp.ms);
 
-      // When the OMS delivery time matches a *different* activity exactly, the likeliest cause is
-      // two activity labels being swapped during the sync rather than a clock problem at all.
+      // An exact match with another activity's time suggests swapped activity labels.
       const twin = eventCase.events.find(
         (e) => e.activity !== ACTIVITIES.DELIVERED && e.timestamp.ok && e.timestamp.ms === order.deliveredDate.ms,
       );

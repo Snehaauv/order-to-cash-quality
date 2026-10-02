@@ -9,11 +9,7 @@ const evidenceBlock = (evidence) =>
     .map(([key, value]) => `  ${key}: ${Array.isArray(value) ? value.join(' -> ') : value}`)
     .join('\n');
 
-/**
- * The report is generated from the same run that produces the console output, so the document can
- * never drift from the code. A hand-maintained defect report is a second source of truth and the
- * first thing to go stale.
- */
+// Renders DEFECT_REPORT.md from a reconciliation result.
 export const renderDefectReport = (result) => {
   const { summary, defects, observations, model } = result;
   const lines = [];
@@ -25,6 +21,10 @@ export const renderDefectReport = (result) => {
   lines.push('| | |');
   lines.push('|---|---|');
   const lateDeliveries = observations.filter((o) => o.ruleId === 'LATE-DELIVERY').length;
+  const defectCases = new Set(defects.flatMap((d) => d.cases));
+  const staleCases = observations.filter((o) => o.ruleId === 'STALE-LAST-MODIFIED').flatMap((o) => o.cases);
+  const corroborated = staleCases.filter((id) => defectCases.has(id));
+  const unexplained = staleCases.filter((id) => !defectCases.has(id));
 
   lines.push(`| Source | ${model.counts.orders} orders |`);
   lines.push(`| Target | ${model.counts.events} events across ${model.counts.cases} orders |`);
@@ -40,9 +40,11 @@ export const renderDefectReport = (result) => {
   lines.push(
     `| Observations | ${lateDeliveries} late deliveries (not defects - the copy is correct, the delivery was slow) |`,
   );
+  lines.push(
+    `| Suspicious | ${unexplained.length} orders with an event after the OMS LastModified (${unexplained.join(', ') || 'none'}) - not in the contract, to be confirmed |`,
+  );
   lines.push('');
-  // Findings, not defects: ORD-1010 has findings in two dimensions, so a per-dimension count of
-  // distinct defects cannot add up to the headline. Labelled as findings so the totals are honest.
+  // Per-dimension counts are findings, not distinct defects.
   lines.push(
     `Findings by dimension: ${Object.entries(summary.byDimension).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`,
   );
@@ -98,10 +100,10 @@ export const renderDefectReport = (result) => {
   });
 
   if (observations.length) {
-    lines.push('## Observations - behaving as specified, reported for information');
+    lines.push('## Observations - not counted as defects');
     lines.push('');
     lines.push(
-      'These are not integration defects. The sync reproduced both sides faithfully; the finding is about the business process. They are listed separately so the defect count stays honest.',
+      `Not counted as defects. LATE-DELIVERY is a business finding: the sync copied both dates correctly. STALE-LAST-MODIFIED is outside the contract and needs confirming; where it fires on an order that already has a defect (${corroborated.join(', ') || 'none'}) it is corroboration, not a new finding.`,
     );
     lines.push('');
     lines.push('| ID | Case(s) | Observation |');

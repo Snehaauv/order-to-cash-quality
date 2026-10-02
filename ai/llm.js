@@ -6,18 +6,7 @@ import { dirname, join } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const CACHE_DIR = join(here, 'cache');
 
-/**
- * Provider wrapper with a response cache keyed by prompt hash.
- *
- * The cache is not a performance optimisation. It is what makes a reviewer able to run this at all
- * without my API key, and it is what makes the output reproducible: the same prompt yields the
- * identical response on every run, so an accepted rule set does not quietly change between CI runs
- * because the model was re-sampled. In a real pipeline I would commit these fixtures exactly as I
- * would commit a recorded HTTP cassette.
- *
- * Live mode is used when ANTHROPIC_API_KEY is set and --live is passed; the response is then
- * written into the cache so the run becomes reproducible afterwards.
- */
+// LLM wrapper with a response cache keyed by prompt hash. Live calls need ANTHROPIC_API_KEY and --live.
 
 const cachePathFor = (prompt, model) =>
   join(CACHE_DIR, `${createHash('sha256').update(`${model}\n${prompt}`).digest('hex').slice(0, 16)}.json`);
@@ -53,8 +42,6 @@ export const complete = async ({ prompt, model = DEFAULT_MODEL, live = false, la
   const response = await client.messages.create({
     model,
     max_tokens: 4096,
-    // Zero temperature because this is a compiler stage, not a brainstorm. Variability here would
-    // mean the accepted rule set differs run to run for no reason a reviewer could audit.
     temperature: 0,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -73,11 +60,7 @@ export const complete = async ({ prompt, model = DEFAULT_MODEL, live = false, la
   return { ...payload, source: 'live', cachePath };
 };
 
-/**
- * Models wrap JSON in prose and fences no matter how firmly the prompt forbids it. Extracting the
- * array rather than demanding clean output is the cheaper, more reliable contract - and a parse
- * failure here is reported as a rejected batch, never as an empty-but-successful run.
- */
+// Extracts the JSON array from the model response.
 export const extractJsonArray = (text) => {
   const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(text);
   const candidate = fenced ? fenced[1] : text;

@@ -10,7 +10,7 @@ LLM-assisted rule compiler with a verification gate.
 npm install
 npm run reconcile        # the core: find every place Analytics disagrees with the OMS
 npm run mutation         # prove the detector still detects - 12 injected defects, 12 caught
-npm test                 # 48 tests across data, API and UI
+npm test                 # 49 tests across data, API and UI
 npm run ai:compile       # LLM proposes rules; the gate accepts 2, rejects 2, quarantines 1
 ```
 
@@ -23,9 +23,9 @@ dependencies** and run on a clean clone before `npm install` finishes.
 |---|---|
 | **11 orders with defects** (13 findings) out of 20 | `DEFECT_REPORT.md` |
 | **0 false positives** on the 5 cases the contract calls correct | `tests/data/reconciliation.spec.js` |
-| **19 rules** across 6 dimensions, 0 errored | `src/rules/` |
-| **12/12 mutations killed** | `npm run mutation` |
-| **48/48 tests passing** — 21 data, 20 API, 7 UI | `npm test` |
+| **20 rules** across 6 dimensions, 0 errored | `src/rules/` |
+| **13/13 mutations killed** | `npm run mutation` |
+| **49/49 tests passing** — 24 data, 18 API, 7 UI | `npm test` |
 | **2 of 5 LLM-proposed rules accepted**, 2 rejected, 1 quarantined | `ai/generated-rules.json` |
 
 ## What's where
@@ -96,6 +96,12 @@ other eleven findings:
 `tests/data/reconciliation.spec.js` asserts these stay silent, so a future rule change that starts
 flagging them fails the build.
 
+**Two orders are suspicious but not counted as defects.** ORD-1005 and ORD-1015 have an Order
+Confirmed event later than the OMS `LastModified`. For 16 of 20 orders `LastModified` follows the last
+event by seconds; the other two exceptions are ORD-1009 and ORD-1018, both already defects. The
+contract does not define `LastModified`, so `STALE-LAST-MODIFIED` reports these as observations to
+confirm with the OMS team.
+
 ## Honest limitations
 
 - **Timeliness is unmeasurable here.** There is no ingestion timestamp in the data, only event time,
@@ -114,8 +120,8 @@ flagging them fails the build.
 
 ## Trade-offs I would defend
 
-**A declarative engine for 19 rules is over-engineered if you only ever have 19 rules.** It is the
-right shape at 200, and at 19 it already paid for itself twice: the data tests are generated from
+**A declarative engine for 20 rules is over-engineered if you only ever have 20 rules.** It is the
+right shape at 200, and at 20 it already paid for itself twice: the data tests are generated from
 the inventory, and the LLM in `ai/` has a schema to target instead of writing code.
 
 **The LLM is deliberately kept off the critical path.** The obvious artifact — ask a model to explain
@@ -123,8 +129,8 @@ the anomalies — puts it between the data and the verdict. Here it is used for 
 have no rule) while precision stays in deterministic code. It also means the submission does not
 depend on a model being available to produce its result.
 
-**Mutation testing over more rules.** Given a choice between a twentieth rule and proving the
-existing nineteen still fire, the proof is worth more. A validation suite's real failure mode is
+**Mutation testing over more rules.** Given a choice between another rule and proving the
+existing ones still fire, the proof is worth more. A validation suite's real failure mode is
 rotting silently — a renamed column, an over-eager normaliser — and a green run looks identical to
 clean data.
 

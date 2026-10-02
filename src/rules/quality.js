@@ -2,11 +2,7 @@ import { SCOPE, SEVERITY } from '../reconcile/engine.js';
 import { STATUSES } from '../domain/lifecycle.js';
 import { formatDuration } from '../domain/time.js';
 
-/**
- * Rules in this file inspect the OMS in isolation. They matter because the OMS is the source of
- * record: a cross-system comparison can only ever tell you the two sides agree, and two sides can
- * agree on a value that is wrong. A negative order amount that syncs faithfully is still a defect.
- */
+// OMS-only data-quality rules.
 export const qualityRules = [
   {
     id: 'NEGATIVE-AMOUNT',
@@ -91,12 +87,7 @@ export const qualityRules = [
   },
 ];
 
-/**
- * Observations are reported separately from defects. The sync is behaving correctly in every case
- * below - the finding is about the business process, not the integration. Mixing the two is how a
- * defect report loses credibility, because a reviewer who finds one non-defect starts doubting the
- * rest.
- */
+// Observations: the sync is correct; reported for information, not as defects.
 export const observationRules = [
   {
     id: 'LATE-DELIVERY',
@@ -117,6 +108,33 @@ export const observationRules = [
           promisedDate: order.promisedDate.raw,
           deliveredDate: order.deliveredDate.raw,
           lateBy: formatDuration(order.deliveredDate.ms - order.promisedDate.ms),
+        },
+      };
+    },
+  },
+  {
+    id: 'STALE-LAST-MODIFIED',
+    dimension: 'temporal correctness',
+    severity: SEVERITY.INFO,
+    scope: SCOPE.PAIR,
+    title: 'No event may be later than the OMS LastModified',
+    contract: 'Not a stated contract rule. LastModified normally follows the last lifecycle event by seconds.',
+    detection: 'Compare the latest Analytics event time against the OMS LastModified for the same order.',
+    evaluate: ({ order, eventCase }) => {
+      if (!order || !eventCase || !order.lastModified.ok) return null;
+
+      const latest = eventCase.events.filter((e) => e.timestamp.ok).at(-1);
+      if (!latest || latest.timestamp.ms <= order.lastModified.ms) return null;
+
+      const gap = formatDuration(latest.timestamp.ms - order.lastModified.ms);
+      return {
+        classification: 'observation',
+        summary: `"${latest.activity}" at ${latest.timestamp.raw} is ${gap} after the OMS LastModified ${order.lastModified.raw}. Either the OMS did not record the change or the event time is wrong - to be confirmed.`,
+        evidence: {
+          omsLastModified: order.lastModified.raw,
+          latestActivity: latest.activity,
+          latestEventAt: latest.timestamp.raw,
+          laterBy: gap,
         },
       };
     },

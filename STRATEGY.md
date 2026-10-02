@@ -104,37 +104,40 @@ against an SLO per activity. Called out rather than quietly skipped.
 Priority is risk = (probability the sync gets it wrong) × (cost of the resulting wrong decision).
 **P1** means a silent, material, plausible-looking error.
 
-| ID | Layer | Scenario | Priority | Technique | Oracle / expected result |
-|---|---|---|---|---|---|
-| D-01 | Data | Every non-Cart order appears in Analytics | P1 | Anti-join | Zero orders absent from the event log |
-| D-02 | Data | No Analytics case lacks a source order | P1 | Reverse anti-join | Zero orphan cases |
-| D-03 | Data | Amount matches on every event | P1 | Integer minor-unit comparison | Exact equality, no tolerance |
-| D-04 | Data | Currency matches on every event | P1 | Normalised string comparison | Exact equality after trim/upper |
-| D-05 | Data | Delivered orders show the full happy path | P1 | Variant replay | Trace equals `Placed→Confirmed→Shipped→Delivered` |
-| D-06 | Data | No event timestamp is in the future | P1 | Clock comparison (injected clock) | All events ≤ reference now |
-| D-07 | Data | Delivered event time equals OMS `DeliveredDate` | P1 | Delta classification | Zero delta, or delta named as a timezone fault |
-| D-08 | Data | Happy-path events are non-decreasing in time | P1 | Rank-ordered monotonicity | No negative step duration |
-| D-09 | Data | No duplicate activity within a case | P2 | Multiset comparison vs variant | Each expected activity occurs exactly once |
-| D-10 | Data | Carts do not sync | P2 | Inner join on `Status = Cart` | Zero events for Cart orders |
-| D-11 | Data | `OrderAmount` is never negative | P2 | Sign assertion | All amounts ≥ 0 |
-| D-12 | Data | `CustomerName` matches after documented normalisation | P2 | Trim + case-fold comparison | Equal; `ORD-1015` must **not** be flagged |
-| D-13 | Data | Cancelled / Returned terminal branches are accepted | P2 | Variant replay | Conformant, zero findings |
-| D-14 | Data | Timestamps carry an explicit UTC designator | P3 | Pattern assertion | All match `...Z` |
-| D-15 | Data | Keys match documented formats | P3 | Regex assertion | `ORD-####`, `CUST-##` |
-| A-01 | API | Ingest rejects an unknown activity | P1 | Negative / equivalence class | 422, error names `activity` |
-| A-02 | API | Ingest rejects a non-UTC timestamp | P1 | Negative | 422, error names `timestamp` |
-| A-03 | API | Ingest rejects a non-ISO currency | P1 | Negative | 422, error names `currency` |
-| A-04 | API | A batch with one bad event accepts none | P1 | Transactionality | 422, `accepted: 0` |
-| A-05 | API | Re-delivering an event does not duplicate it | P1 | Idempotency | Second call creates no second event |
-| A-06 | API | Unknown order returns 404, not empty 200 | P2 | Negative | 404 with `not_found` |
-| A-07 | API | Amount boundary: excess precision rejected | P2 | Boundary | 422 on `12500.123` |
-| A-08 | API | Negative amount rejected at the door | P2 | Boundary | 422, `range` |
-| A-09 | API | Response shape and version do not drift | P3 | Contract snapshot | Keys and `x-api-version` stable |
-| U-01 | UI | Cart can be assembled and placed | P1 | E2E happy path | Order confirmation shown |
-| U-02 | UI | Checkout total equals the sum of line items | P1 | Calculation check | Total ≥ subtotal, difference is tax only |
-| U-03 | UI | Order cannot be placed with missing customer fields | P2 | Negative | Validation error, no order created |
-| U-04 | UI | Removing the last item empties the cart | P2 | State consistency | Badge absent, not stale |
-| U-05 | UI | Invalid credentials refused without user enumeration | P3 | Security-adjacent negative | Generic failure message |
+| ID | Layer | Scenario | Priority | Technique | Oracle / expected result | Automated |
+|---|---|---|---|---|---|---|
+| D-01 | Data | Every non-Cart order appears in Analytics | P1 | Anti-join | Zero orders absent from the event log | ✅ |
+| D-02 | Data | No Analytics case lacks a source order | P1 | Reverse anti-join | Zero orphan cases | ✅ |
+| D-03 | Data | Amount matches on every event | P1 | Integer minor-unit comparison | Exact equality, no tolerance | ✅ |
+| D-04 | Data | Currency matches on every event | P1 | Normalised string comparison | Exact equality after trim/upper | ✅ |
+| D-05 | Data | Delivered orders show the full happy path | P1 | Variant replay | Trace equals `Placed→Confirmed→Shipped→Delivered` | ✅ |
+| D-06 | Data | No event timestamp is in the future | P1 | Clock comparison (injected clock) | All events ≤ reference now | ✅ |
+| D-07 | Data | Delivered event time equals OMS `DeliveredDate` | P1 | Delta classification | Zero delta, or delta named as a timezone fault | ✅ |
+| D-08 | Data | Happy-path events are non-decreasing in time | P1 | Rank-ordered monotonicity | No negative step duration | ✅ |
+| D-09 | Data | No duplicate activity within a case | P2 | Multiset comparison vs variant | Each expected activity occurs exactly once | ✅ |
+| D-10 | Data | Carts do not sync | P2 | Inner join on `Status = Cart` | Zero events for Cart orders | ✅ |
+| D-11 | Data | `OrderAmount` is never negative | P2 | Sign assertion | All amounts ≥ 0 | ✅ |
+| D-12 | Data | `CustomerName` matches after documented normalisation | P2 | Trim + case-fold comparison | Equal; `ORD-1015` must **not** be flagged | ✅ |
+| D-13 | Data | Cancelled / Returned terminal branches are accepted | P2 | Variant replay | Conformant, zero findings | ✅ |
+| D-14 | Data | Timestamps carry an explicit UTC designator | P3 | Pattern assertion | All match `...Z` | ✅ |
+| D-15 | Data | Keys match documented formats | P3 | Regex assertion | `ORD-####`, `CUST-##` | ⚠️ ORD-#### only |
+| A-01 | API | Ingest rejects an unknown activity | P1 | Negative / equivalence class | 422, error names `activity` | ✅ |
+| A-02 | API | Ingest rejects a non-UTC timestamp | P1 | Negative | 422, error names `timestamp` | ✅ |
+| A-03 | API | Ingest rejects a non-ISO currency | P1 | Negative | 422, error names `currency` | ✅ |
+| A-04 | API | A batch with one bad event accepts none | P1 | Transactionality | 422, `accepted: 0` | ✅ |
+| A-05 | API | Re-delivering an event does not duplicate it | P1 | Idempotency | Second call creates no second event | ❌ planned |
+| A-06 | API | Unknown order returns 404, not empty 200 | P2 | Negative | 404 with `not_found` | ✅ |
+| A-07 | API | Amount boundary: excess precision rejected | P2 | Boundary | 422 on `12500.123` | ✅ |
+| A-08 | API | Negative amount rejected at the door | P2 | Boundary | 422, `range` | ✅ |
+| A-09 | API | Response shape and version do not drift | P3 | Contract snapshot | Keys and `x-api-version` stable | ❌ planned |
+| U-01 | UI | Cart can be assembled and placed | P1 | E2E happy path | Order confirmation shown | ✅ |
+| U-02 | UI | Checkout total equals the sum of line items | P1 | Calculation check | Total ≥ subtotal, difference is tax only | ✅ |
+| U-03 | UI | Order cannot be placed with missing customer fields | P2 | Negative | Validation error, no order created | ✅ |
+| U-04 | UI | Removing the last item empties the cart | P2 | State consistency | Badge absent, not stale | ✅ |
+| U-05 | UI | Invalid credentials refused without user enumeration | P3 | Security-adjacent negative | Generic failure message | ✅ |
+
+A-05 and A-09 are specified but not automated: the mock has no persistence between requests and no
+versioned contract, so testing either would exercise the mock rather than the contract.
 
 ## If I only had one hour
 

@@ -1,12 +1,4 @@
-/**
- * Timestamp handling, plus the diagnosis layer that turns "these two timestamps differ" into a
- * root-cause hypothesis.
- *
- * A bare mismatch is a weak finding: it tells an engineer to go and investigate. When the delta is
- * exactly a real-world UTC offset, the mismatch is almost certainly a local wall-clock time written
- * into a field declared as UTC - a timezone handling bug in the sync, not clock drift. Classifying
- * the delta turns the finding into something actionable.
- */
+// Timestamp parsing, and classification of deltas that match a real UTC offset.
 
 export const ISO_UTC_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 
@@ -25,8 +17,7 @@ export const parseInstant = (raw) => {
   };
 };
 
-// Offsets that exist as real zones. Half-hour and three-quarter-hour entries matter: they are the
-// ones that cannot be explained away as a rounding or daylight-saving artefact.
+// Real-world UTC offsets.
 const KNOWN_OFFSETS_MINUTES = [
   { minutes: 330, zones: 'Asia/Kolkata, Asia/Colombo' },
   { minutes: 345, zones: 'Asia/Kathmandu' },

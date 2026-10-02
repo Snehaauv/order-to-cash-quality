@@ -1,17 +1,4 @@
-/**
- * The labelled set a generated rule has to clear before it is allowed into the suite.
- *
- * Two kinds of wrong rule reach you from a language model, and they fail in opposite directions:
- *
- *   - the rule that flags nothing. Looks correct, reads well, matches no row. A suite containing it
- *     is less safe than before, because the dimension now appears covered.
- *   - the rule that flags everything. Technically detects the defect, but also fires on rows the
- *     contract explicitly says are fine - ORD-1015's "VanArsdel  " vs "vanarsdel" is the obvious
- *     trap, and a rule comparing names without normalisation will "find" it.
- *
- * So acceptance requires both directions: catch every mustFlag row, and stay silent on every
- * mustPass row. One direction alone is not a gate.
- */
+// Labelled rows a generated rule must pass: flag every mustFlag row, stay silent on every mustPass row.
 
 export const GOOD_ROWS = [
   {
@@ -42,7 +29,7 @@ export const GOOD_ROWS = [
     ],
   },
   {
-    // The deliberate trap. Any name rule that does not normalise will fail the gate here.
+    // Differs only by case and whitespace - not a defect.
     label: 'customer name differing only by case and trailing whitespace - contract says equal',
     order: {
       orderId: 'FIX-0002',
@@ -146,12 +133,7 @@ const asPair = (row) => ({
   eventCase: row.events.length ? { caseId: row.order.orderId, events: row.events, trace: row.events.map((e) => e.activity) } : null,
 });
 
-/**
- * Runs one compiled rule over the labelled set and decides whether to trust it. A rule is accepted
- * only if it is silent on every good row and raises on at least one bad row it claims to target -
- * matched loosely on keyword, because the model chooses its own wording and should not be rejected
- * for phrasing.
- */
+// Rejected if it flags a good row, quarantined if it flags no bad row, otherwise accepted.
 export const verifyRule = (rule) => {
   const falsePositives = [];
   const detected = [];
@@ -185,10 +167,7 @@ export const verifyRule = (rule) => {
       `fires on ${falsePositives.length} row(s) the contract says are correct: ${falsePositives.map((f) => f.row).join('; ')}`,
     );
   } else if (detected.length === 0) {
-    // Quarantine rather than reject. The rule may be perfectly sound and simply have no labelled
-    // defect of its class to catch, so the gate has no evidence either way. Rejecting would throw
-    // away good rules; accepting would defeat the gate. Neither is honest, so it goes to a human
-    // with the specific ask: add a fixture that this rule should catch.
+    // No labelled defect caught: needs a fixture before it can be trusted.
     verdict = 'needs-fixture';
     reasons.push(
       'silent on every labelled defect - the gate cannot confirm it detects anything, so a fixture is needed before it can be trusted',
@@ -197,9 +176,5 @@ export const verifyRule = (rule) => {
     verdict = 'accepted';
   }
 
-  // What this gate proves, precisely: the rule fires on at least one real defect and stays silent
-  // on every row the contract calls correct. What it does not prove is that the rule fires for the
-  // right reason - a rule could catch the currency fixture by accident. That residual risk is why
-  // accepted rules are written to an audit file for human review rather than merged automatically.
   return { verdict, falsePositives, detected, reasons };
 };

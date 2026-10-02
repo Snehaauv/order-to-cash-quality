@@ -41,8 +41,7 @@ export const completenessRules = [
     dimension: 'completeness',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.ORDER,
-    // The inverse of MISSING-ORDER. A sync that leaks work-in-progress carts into analytics inflates
-    // order counts and conversion rates, and no rule looking for absence would ever notice.
+    // Carts must not sync.
     title: 'Cart orders must not appear in Analytics',
     contract: 'Carts do not sync.',
     detection: 'Inner join on Status = Cart; any matching case is a violation.',

@@ -1,19 +1,4 @@
-/**
- * Mutation testing for a data-validation suite.
- *
- * A reconciliation suite has a failure mode that normal testing cannot see: it can go green because
- * a check silently stopped working. A typo in a column name, a normaliser that now trims too
- * aggressively, an LLM-generated rule that looks right and matches nothing - all of these produce a
- * clean run, which is indistinguishable from clean data.
- *
- * So the suite is tested the same way you would test any other detector: inject a known defect and
- * assert it is caught. Each mutation below states which rule must fire and on which case. If a
- * mutation survives, the harness fails - the detector has a hole in it, whether or not the real
- * data currently exercises that hole.
- *
- * This is the concrete answer to "what stops an LLM silently passing a real defect": nothing the LLM
- * says is trusted, and every rule - hand-written or generated - has to prove it still detects.
- */
+// Known defects injected into a copy of the data. Each must be caught by the named rule on the named case.
 
 export const MUTATIONS = [
   {
@@ -117,6 +102,13 @@ export const MUTATIONS = [
       rows.map((row) =>
         row.startsWith('ORD-1003,Order Shipped') ? row.replace('Order Shipped', 'Order Dispatched') : row,
       ),
+  },
+  {
+    id: 'MUT-13',
+    describes: 'OMS LastModified not updated after the last lifecycle change',
+    expect: { ruleId: 'STALE-LAST-MODIFIED', caseId: 'ORD-1001' },
+    orders: (rows) =>
+      rows.map((row) => (row.startsWith('ORD-1001,') ? row.replace('2026-08-20T14:30:05Z', '2026-08-03T09:00:05Z') : row)),
   },
 ];
 

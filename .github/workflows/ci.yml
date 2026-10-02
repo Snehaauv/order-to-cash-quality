@@ -6,9 +6,7 @@ on:
   pull_request:
 
 jobs:
-  # Split deliberately. The reconciler and the mutation harness have zero dependencies and no
-  # browser, so they finish in seconds and give fast feedback on the thing that matters most. A
-  # single job would make every contributor wait for a browser download to learn that a rule broke.
+  # No dependencies or browser needed, so this gives fast feedback.
   reconcile:
     name: reconciliation + mutation
     runs-on: ubuntu-latest
@@ -21,9 +19,6 @@ jobs:
       - name: Reconcile OMS against Analytics
         run: node bin/reconcile.js --now=2026-10-01T12:00:00Z
 
-      # Fails the build if any injected defect survives. This is the guard against the suite
-      # rotting silently - a check that stopped matching produces a clean run, which is
-      # indistinguishable from clean data.
       - name: Mutation testing
         run: node bin/mutation.js
 
@@ -51,8 +46,7 @@ jobs:
       - name: Data and API layers
         run: npx playwright test --project=data --project=api
 
-      # Allowed to fail the job but reported separately: the UI project depends on a third-party
-      # demo site being up, which is not a signal about this repository.
+      # Depends on a third-party demo site, so it does not fail the build.
       - name: UI layer
         run: npx playwright test --project=ui
         continue-on-error: true
@@ -73,7 +67,6 @@ jobs:
         with:
           node-version: 20
 
-      # Runs offline from the committed cassette, so CI needs no API key and the accepted rule set
-      # is reproducible. A change here shows up as a reviewable diff rather than silent drift.
+      # Runs offline from the saved response, so no API key is needed.
       - name: Compile and verify LLM-proposed rules
         run: node ai/compile-rules.js

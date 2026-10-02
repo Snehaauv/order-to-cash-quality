@@ -79,9 +79,7 @@ console.log(
   `${accepted.length} accepted, ${quarantined.length} quarantined, ${rejected.length} rejected out of ${candidates.length} proposed.`,
 );
 
-// The accepted rules are then run against the real data alongside the hand-written ones. This is
-// the part that matters: a generated rule is only interesting if it finds something a human rule
-// did not, and that claim has to be demonstrated rather than asserted.
+// Run accepted rules against the real data alongside the hand-written ones.
 if (accepted.length) {
   const baseline = new Set(
     reconcile({ now: new Date('2026-10-01T12:00:00Z') }).defects.map((f) => `${f.ruleId}::${f.cases.join(',')}`),

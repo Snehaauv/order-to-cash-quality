@@ -12,7 +12,7 @@ npm run test:ui                      # ui only, needs a browser
 npx playwright show-report
 ```
 
-Current state: **48 tests, all passing.** 21 data, 20 API, 7 UI.
+Current state: **49 tests, all passing.** 24 data, 18 API, 7 UI.
 
 ## Layout
 
@@ -44,7 +44,7 @@ the failure was. UI against a public demo site is subject to genuine network fla
 there is justified. Retries configured uniformly are how a flaky suite becomes a trusted one by
 accident.
 
-**`reconciliation` is worker-scoped.** Parsing both CSVs and running nineteen rules per test would
+**`reconciliation` is worker-scoped.** Parsing both CSVs and running twenty rules per test would
 dominate the runtime of a suite that is otherwise pure computation. One run per worker, shared
 read-only.
 

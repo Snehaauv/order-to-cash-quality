@@ -1,11 +1,4 @@
-/**
- * Amounts are compared as integer minor units, never as floats.
- *
- * The seeded 1234.56 -> 1234.60 defect is a 4-minor-unit difference. With float arithmetic a
- * tolerance loose enough to absorb representation error (1234.56 cannot be held exactly in a
- * double) risks absorbing a real 4-cent discrepancy too. Parsing the decimal string into an
- * integer removes the tolerance question entirely: either the integers are equal or they are not.
- */
+// Amounts are compared as integer minor units, never as floats.
 
 const MINOR_UNIT_DIGITS = 2;
 

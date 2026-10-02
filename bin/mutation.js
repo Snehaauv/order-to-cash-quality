@@ -8,8 +8,7 @@ import { MUTATIONS, applyMutation } from '../src/reconcile/mutations.js';
 const ORDERS = join(projectRoot, 'data', 'orders.csv');
 const EVENTS = join(projectRoot, 'data', 'analytics_event_log.csv');
 
-// Pinned so the future-timestamp rule is deterministic: a mutation that injects a 2031 date must
-// still read as "the future" whenever this runs.
+// Fixed clock so date rules are deterministic.
 const NOW = new Date('2026-10-01T12:00:00Z');
 
 const fingerprint = (finding) => `${finding.ruleId}::${finding.cases.join(',')}`;
@@ -17,7 +16,8 @@ const fingerprint = (finding) => `${finding.ruleId}::${finding.cases.join(',')}`
 const ordersCsv = readFileSync(ORDERS, 'utf8');
 const eventsCsv = readFileSync(EVENTS, 'utf8');
 
-const baseline = new Set(reconcile({ now: NOW }).defects.map(fingerprint));
+const flagged = (run) => [...run.defects, ...run.observations].map(fingerprint);
+const baseline = new Set(flagged(reconcile({ now: NOW })));
 
 const workDir = mkdtempSync(join(tmpdir(), 'o2c-mutation-'));
 const results = [];
@@ -31,7 +31,7 @@ try {
     writeFileSync(eventsPath, mutated.eventsCsv, 'utf8');
 
     const run = reconcile({ ordersPath, eventsPath, now: NOW });
-    const introduced = run.defects.map(fingerprint).filter((fp) => !baseline.has(fp));
+    const introduced = flagged(run).filter((fp) => !baseline.has(fp));
     const wanted = `${mutation.expect.ruleId}::${mutation.expect.caseId}`;
 
     results.push({

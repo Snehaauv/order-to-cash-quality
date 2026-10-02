@@ -1,15 +1,4 @@
-/**
- * The rule executor.
- *
- * Every rule is a declaration: what it checks, which contract clause it enforces, what it iterates
- * over, and how severe a breach is. The engine owns iteration, error containment and finding
- * shape; a rule owns only its predicate. That split is the point - it is what lets a new defect
- * class be added as data rather than as control flow, and it is what gives the LLM in ai/ a fixed
- * target schema to emit against.
- *
- * A rule that throws is reported as an errored rule, never as a pass. A validation suite that goes
- * green because a check crashed is worse than no check at all.
- */
+// Rule executor. A rule that throws is reported as errored, never as passed.
 
 export const SEVERITY = {
   CRITICAL: 'Critical',
@@ -104,15 +93,7 @@ export const runRules = (rules, model) => {
   return { findings, errors, executed, ruleCount: rules.length };
 };
 
-/**
- * Groups findings that share a subject.
- *
- * ORD-1010 trips three rules - a transposed delivery timestamp, a non-conformant trace, and a
- * negative step duration - but there is one bug behind all three. Reporting it as three defects
- * would overstate the count and invite the fair criticism that the suite cannot tell distinct bugs
- * apart. Keeping every rule hit but presenting them grouped gives both numbers honestly: how many
- * things are broken, and how many independent checks noticed.
- */
+// Groups findings by case, so one bug caught by several rules counts as one defect.
 export const groupByRootCause = (findings) => {
   const groups = new Map();
 
@@ -147,9 +128,7 @@ export const summarise = ({ findings, errors, executed, ruleCount }) => {
   const defects = findings.filter((f) => f.classification === 'defect');
   const observations = findings.filter((f) => f.classification === 'observation');
 
-  // Severity is counted per distinct defect, not per finding, so the split adds up to the headline
-  // defect count. Counting findings instead gave "4 + 7 + 2 = 13" beside "11 defects", which reads
-  // as an arithmetic error. A defect takes the highest severity of any rule that caught it.
+  // Severity per distinct defect: the highest severity among its findings.
   const groups = groupByRootCause(defects);
   const bySeverity = SEVERITY_ORDER.reduce((acc, severity) => {
     const count = groups.filter((g) => g.severity === severity).length;

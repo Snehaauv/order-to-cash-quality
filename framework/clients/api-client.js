@@ -1,11 +1,4 @@
-/**
- * Thin client over the sync/ingest API.
- *
- * It returns status and body together and never throws on a non-2xx, because in an integration
- * suite the error responses are the subject of the test, not an exception to be handled. A client
- * that throws on 422 forces every negative test into a try/catch and makes the assertion about the
- * throw rather than about the contract.
- */
+// Client for the sync/ingest API. Returns status and body; does not throw on non-2xx.
 export class ApiClient {
   constructor(request, baseUrl) {
     this.request = request;
@@ -59,11 +52,7 @@ export class ApiClient {
     });
   }
 
-  /**
-   * Sends the bytes verbatim via `body` rather than `data`. Playwright's `data` option serialises
-   * an object or string to JSON, so passing the string '{ not json' would arrive as the perfectly
-   * valid JSON document "{ not json" and the malformed-payload test would silently assert nothing.
-   */
+  // Sends raw bytes via `body`; `data` would JSON-encode them.
   ingestMalformed(rawText) {
     return this.#send('POST', '/sync/events', {
       headers: { 'content-type': 'application/json' },

@@ -1,12 +1,4 @@
-/**
- * The process model, and conformance checking by replaying each case against it.
- *
- * The alternative - one hand-written check per defect shape (missing step, extra step, wrong order,
- * invalid branch) - grows a new branch every time the process changes and silently misses any shape
- * nobody thought to write. Declaring the expected variant per terminal status and diffing the
- * observed trace against it catches all four shapes with one algorithm, and the model stays
- * readable enough to review against the written contract.
- */
+// Expected process per status, and conformance by replaying each case against it.
 
 export const ACTIVITIES = {
   PLACED: 'Order Placed',
@@ -33,11 +25,7 @@ export const HAPPY_PATH = [
   ACTIVITIES.DELIVERED,
 ];
 
-/**
- * Expected activity trace for an order sitting in each terminal status. A Cart has no expected
- * trace at all - the contract says carts do not sync, so an empty event log is conformant and the
- * presence of events would be the defect.
- */
+// Expected activity trace per terminal status. Carts have none: they do not sync.
 export const EXPECTED_VARIANT = {
   [STATUSES.CART]: [],
   [STATUSES.CONFIRMED]: [ACTIVITIES.PLACED, ACTIVITIES.CONFIRMED],
@@ -66,12 +54,7 @@ export const happyPathRank = (activity) => HAPPY_PATH.indexOf(activity);
 const countBy = (items) =>
   items.reduce((acc, item) => acc.set(item, (acc.get(item) ?? 0) + 1), new Map());
 
-/**
- * Diffs an observed trace against the expected variant and reports each deviation shape separately,
- * because they have different causes: a missing step suggests a dropped sync message, a duplicate
- * suggests a retry without idempotency, and an ordering violation suggests the events were
- * timestamped or emitted out of sequence.
- */
+// Diffs an observed trace against the expected variant: missing, unexpected, duplicate, out of order.
 export const checkConformance = (status, observedTrace) => {
   const expected = EXPECTED_VARIANT[status];
   if (!expected) {
@@ -98,9 +81,7 @@ export const checkConformance = (status, observedTrace) => {
     }
   }
 
-  // Ordering is assessed only over activities the variant actually expects, and each is considered
-  // once. Without that filter a duplicate or an unexpected activity would also be reported as an
-  // ordering fault, turning one defect into three findings.
+  // Order is checked over expected activities only, each once, so one fault is not reported three times.
   const seenOnce = new Set();
   const orderedKnown = observedTrace.filter((activity) => {
     if (!expectedCounts.has(activity) || seenOnce.has(activity)) return false;

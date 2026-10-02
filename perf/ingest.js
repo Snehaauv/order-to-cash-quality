@@ -3,17 +3,11 @@ import { check } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { randomSeed } from 'k6';
 
-/**
- * k6 stub for the sync/ingest endpoint.
- *
- * Runnable but not run as part of the submission - pointed at the local mock it validates the
- * script, not the service. See PERFORMANCE.md for why loss and ordering are asserted separately
- * from latency.
- *
- *   npm run mock-api
- *   k6 run perf/ingest.js
- *   k6 run -e SCENARIO=burst perf/ingest.js
- */
+// k6 load test for the ingest endpoint. See PERFORMANCE.md.
+//
+//   npm run mock-api
+//   k6 run perf/ingest.js
+//   k6 run -e SCENARIO=burst perf/ingest.js
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 const BATCH_SIZE = Number(__ENV.BATCH_SIZE || 500);
@@ -24,7 +18,7 @@ const acceptedEvents = new Counter('events_accepted');
 const rejectedBatches = new Counter('batches_rejected');
 const batchLatency = new Trend('batch_latency_ms', true);
 
-// Seeded so two runs generate the same case IDs and the post-run reconciliation is comparable.
+// Seeded for repeatable case IDs.
 randomSeed(20260801);
 
 const SCENARIOS = {
@@ -69,8 +63,7 @@ const SCENARIOS = {
     preAllocatedVUs: 20,
     maxVUs: 60,
   },
-  // Concentrates load on a few cases to see whether per-case ordering survives concurrency. The
-  // scenario the usual load plan omits and the one this system most needs.
+  // Concentrates load on a few cases to test per-case ordering.
   ordering: {
     executor: 'constant-arrival-rate',
     rate: Math.ceil(1000 / 10),
@@ -86,8 +79,7 @@ export const options = {
   thresholds: {
     'http_req_duration{expected_response:true}': ['p(50)<150', 'p(95)<500', 'p(99)<2000'],
     http_req_failed: ['rate<0.001'],
-    // Loss is asserted after the run by reconciling sent against stored - see PERFORMANCE.md.
-    // A threshold here would only catch rejections, not silent drops.
+    // Loss is checked after the run by reconciliation - see PERFORMANCE.md.
     batches_rejected: ['count<1'],
   },
 };
@@ -144,8 +136,7 @@ export default function ingestBatch() {
 }
 
 export function handleSummary(data) {
-  // The ledger a post-run reconciliation needs. Latency alone cannot tell you whether an accepted
-  // event was actually stored, which is the failure mode that matters most here.
+  // Record of sent events for post-run reconciliation.
   return {
     'perf/summary.json': JSON.stringify(
       {

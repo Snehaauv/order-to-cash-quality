@@ -28,7 +28,9 @@ if (wantsJson) {
   console.log('OMS -> Analytics reconciliation');
   console.log(line);
   const lateDeliveries = result.observations.filter((o) => o.ruleId === 'LATE-DELIVERY').length;
-  const otherObservations = result.observations.length - lateDeliveries;
+  const stale = result.observations.filter((o) => o.ruleId === 'STALE-LAST-MODIFIED');
+  const defectCases = new Set(result.defects.flatMap((d) => d.cases));
+  const unexplained = stale.flatMap((o) => o.cases).filter((id) => !defectCases.has(id));
 
   console.log(
     `source:        ${result.model.counts.orders} orders | target: ${result.model.counts.events} events across ${result.model.counts.cases} orders`,
@@ -43,7 +45,10 @@ if (wantsJson) {
     `severity:      ${Object.entries(summary.bySeverity).map(([k, v]) => `${k} ${v}`).join('  ') || 'none'}`,
   );
   console.log(
-    `observations:  ${lateDeliveries} late deliveries${otherObservations ? `, ${otherObservations} other` : ''} (not defects - the copy is correct, the delivery was slow)`,
+    `observations:  ${lateDeliveries} late deliveries (not defects - the copy is correct, the delivery was slow)`,
+  );
+  console.log(
+    `suspicious:    ${unexplained.length} orders with an event after the OMS LastModified (${unexplained.join(', ') || 'none'}) - to be confirmed`,
   );
   console.log(line);
 

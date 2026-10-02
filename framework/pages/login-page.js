@@ -1,10 +1,4 @@
-/**
- * Page objects here expose intent, not controls. `signInAs(user)` rather than `fillUsername` plus
- * `fillPassword` plus `clickSubmit` - so a change to the login form touches one file and no test.
- *
- * Locators use SauceDemo's data-test attributes wherever they exist. They are the only selectors on
- * that app that are not coupled to layout or copy.
- */
+// Locators use SauceDemo data-test attributes.
 export class LoginPage {
   constructor(page) {
     this.page = page;

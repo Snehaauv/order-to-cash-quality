@@ -7,11 +7,7 @@ import { runRules, summarise } from './engine.js';
 const here = dirname(fileURLToPath(import.meta.url));
 export const projectRoot = join(here, '..', '..');
 
-/**
- * `now` is injected rather than read from the system clock inside the rules. The future-timestamp
- * rule would otherwise change behaviour with the calendar, which makes a CI failure impossible to
- * reproduce later. Default is the real clock; tests and the mutation harness pin it.
- */
+// `now` is injectable so date rules are deterministic in tests.
 export const reconcile = ({
   ordersPath = join(projectRoot, 'data', 'orders.csv'),
   eventsPath = join(projectRoot, 'data', 'analytics_event_log.csv'),
