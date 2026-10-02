@@ -1,0 +1,27 @@
+{
+  "name": "order-to-cash-quality",
+  "version": "1.0.0",
+  "description": "OMS to Analytics sync validation: declarative reconciliation, Playwright framework, LLM rule compiler",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "reconcile": "node bin/reconcile.js",
+    "reconcile:json": "node bin/reconcile.js --json",
+    "mutation": "node bin/mutation.js",
+    "mock-api": "node mock-api/server.js",
+    "test": "playwright test",
+    "test:data": "playwright test --project=data",
+    "test:api": "playwright test --project=api",
+    "test:ui": "playwright test --project=ui",
+    "ai:compile": "node ai/compile-rules.js",
+    "ai:explain": "node ai/explain-findings.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.27.0"
+  }
+}

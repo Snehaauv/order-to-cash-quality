@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-10-01T15:59:40.904Z",
+  "model": "claude-sonnet-5",
+  "source": "cache-fallback",
+  "accepted": [
+    {
+      "id": "GEN-001",
+      "dimension": "temporal correctness",
+      "severity": "Medium",
+      "scope": "order",
+      "title": "PromisedDate must not precede CreatedDate",
+      "contract": "PromisedDate is the promised delivery date - a commitment made at or after the order is created.",
+      "rationale": "TMP-005 checks DeliveredDate against CreatedDate but nothing checks PromisedDate. A promise dated before the order exists makes every on-time-delivery metric meaningless, and it is the kind of value a backfill or a timezone bug produces.",
+      "check": {
+        "type": "timestampOrder",
+        "earlier": "order.createdDate",
+        "later": "order.promisedDate"
+      },
+      "verification": {
+        "verdict": "accepted",
+        "falsePositives": [],
+        "detected": [
+          "promised date precedes creation date"
+        ],
+        "reasons": []
+      }
+    },
+    {
+      "id": "GEN-002",
+      "dimension": "data quality",
+      "severity": "Low",
+      "scope": "pair",
+      "title": "Every event must record the actor that performed it",
+      "contract": "ResourceUser is the actor or system that performed the activity.",
+      "rationale": "No existing rule touches ResourceUser. Process mining attributes work to resources; a blank actor silently collapses into an 'unknown' bucket and distorts any handover or workload analysis.",
+      "check": {
+        "type": "fieldPresent",
+        "field": "event.resourceUser"
+      },
+      "verification": {
+        "verdict": "accepted",
+        "falsePositives": [],
+        "detected": [
+          "event carries no resource user"
+        ],
+        "reasons": []
+      }
+    }
+  ],
+  "quarantined": [
+    {
+      "id": "GEN-005",
+      "dimension": "referential integrity",
+      "severity": "Low",
+      "scope": "order",
+      "title": "CustomerId must match the documented CUST-## format",
+      "contract": "CustomerId string CUST-##",
+      "rationale": "REF-002 asserts the OrderId format but nothing asserts CustomerId. A malformed customer key breaks any join to a customer master.",
+      "check": {
+        "type": "matchesPattern",
+        "field": "order.customerId",
+        "pattern": "^CUST-\\d{2}$"
+      },
+      "verification": {
+        "verdict": "needs-fixture",
+        "falsePositives": [],
+        "detected": [],
+        "reasons": [
+          "silent on every labelled defect - the gate cannot confirm it detects anything, so a fixture is needed before it can be trusted"
+        ]
+      }
+    }
+  ],
+  "rejected": [
+    {
+      "id": "GEN-003",
+      "title": "CustomerName must be identical on both sides",
+      "stage": "verification",
+      "reasons": [
+        "fires on 1 row(s) the contract says are correct: customer name differing only by case and trailing whitespace - contract says equal"
+      ]
+    },
+    {
+      "id": "GEN-004",
+      "title": "Discount code must be present on discounted orders",
+      "stage": "schema",
+      "reasons": [
+        "check.field references unknown field \"order.discountCode\""
+      ]
+    }
+  ]
+}

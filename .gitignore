@@ -1,0 +1,12 @@
+node_modules/
+playwright-report/
+test-results/
+perf/summary.json
+
+# ai/cache/ is deliberately NOT ignored. The cassettes are what let a reviewer run the artifact
+# without an API key, and committing them is what makes the accepted rule set reproducible instead
+# of re-sampled on every run.
+
+.env
+.DS_Store
+Thumbs.db
