@@ -25,7 +25,7 @@ const describe = (deviation, status) => {
 
 export const conformanceRules = [
   {
-    id: 'CNF-001',
+    id: 'WRONG-STEPS',
     dimension: 'process conformance',
     severity: SEVERITY.HIGH,
     scope: SCOPE.PAIR,
@@ -33,7 +33,7 @@ export const conformanceRules = [
     contract: 'A delivered order must show the full happy-path sequence; Cancelled and Returned are valid terminal branches.',
     detection: 'Replay each case trace (ordered by timestamp) against the declared variant for its OMS status; report each deviation shape separately. See src/domain/lifecycle.js.',
     evaluate: ({ order, eventCase }) => {
-      // Orphans and dropped orders are already reported by REF-001 and COM-001. Re-reporting them
+      // Orphans and dropped orders are already reported by EXTRA-ORDER and MISSING-ORDER. Re-reporting them
       // here would turn one root cause into two findings and overstate the defect count.
       if (!order || !eventCase) return null;
       if (order.status === STATUSES.CART) return null;
@@ -61,7 +61,7 @@ export const conformanceRules = [
     },
   },
   {
-    id: 'CNF-002',
+    id: 'UNKNOWN-STEP',
     dimension: 'process conformance',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.DATASET,

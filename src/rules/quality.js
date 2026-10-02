@@ -9,7 +9,7 @@ import { formatDuration } from '../domain/time.js';
  */
 export const qualityRules = [
   {
-    id: 'DQ-001',
+    id: 'NEGATIVE-AMOUNT',
     dimension: 'data quality',
     severity: SEVERITY.HIGH,
     scope: SCOPE.ORDER,
@@ -26,7 +26,7 @@ export const qualityRules = [
     },
   },
   {
-    id: 'DQ-002',
+    id: 'UNKNOWN-STATUS',
     dimension: 'data quality',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.ORDER,
@@ -42,7 +42,7 @@ export const qualityRules = [
           },
   },
   {
-    id: 'DQ-003',
+    id: 'MISSING-FIELD',
     dimension: 'data quality',
     severity: SEVERITY.HIGH,
     scope: SCOPE.DATASET,
@@ -99,7 +99,7 @@ export const qualityRules = [
  */
 export const observationRules = [
   {
-    id: 'OBS-001',
+    id: 'LATE-DELIVERY',
     dimension: 'process insight',
     severity: SEVERITY.INFO,
     scope: SCOPE.ORDER,

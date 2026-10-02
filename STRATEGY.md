@@ -20,7 +20,7 @@ Three consequences:
    a reconciliation against the system of record stays true as the data changes.
 2. **False positives cost more than they do elsewhere.** A defect report that cries wolf gets
    ignored, and the one real finding in it dies with the rest. Normalisation rules are therefore
-   part of the contract, not an implementation detail — see `VAL-003` versus the `ORD-1015` trap.
+   part of the contract, not an implementation detail — see `WRONG-NAME` versus the `ORD-1015` trap.
 3. **Absence of a finding must be distinguishable from absence of a check.** A suite that goes green
    because a rule crashed is worse than no suite. This is why rule errors are reported separately
    and why the suite is mutation-tested.

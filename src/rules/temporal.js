@@ -4,7 +4,7 @@ import { ACTIVITIES, STATUSES, happyPathRank } from '../domain/lifecycle.js';
 
 export const temporalRules = [
   {
-    id: 'TMP-001',
+    id: 'FUTURE-DATE',
     dimension: 'temporal correctness',
     severity: SEVERITY.HIGH,
     scope: SCOPE.CASE,
@@ -26,7 +26,7 @@ export const temporalRules = [
         })),
   },
   {
-    id: 'TMP-002',
+    id: 'WRONG-DELIVERY-TIME',
     dimension: 'temporal correctness',
     severity: SEVERITY.HIGH,
     scope: SCOPE.PAIR,
@@ -65,7 +65,7 @@ export const temporalRules = [
     },
   },
   {
-    id: 'TMP-003',
+    id: 'TIME-OUT-OF-ORDER',
     dimension: 'temporal correctness',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.CASE,
@@ -97,7 +97,7 @@ export const temporalRules = [
     },
   },
   {
-    id: 'TMP-004',
+    id: 'NOT-UTC',
     dimension: 'temporal correctness',
     severity: SEVERITY.LOW,
     scope: SCOPE.DATASET,
@@ -129,7 +129,7 @@ export const temporalRules = [
     },
   },
   {
-    id: 'TMP-005',
+    id: 'BAD-OMS-DATES',
     dimension: 'temporal correctness',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.ORDER,

@@ -19,13 +19,13 @@ export const MUTATIONS = [
   {
     id: 'MUT-01',
     describes: 'currency re-denominated on every event of a clean case',
-    expect: { ruleId: 'VAL-002', caseId: 'ORD-1001' },
+    expect: { ruleId: 'WRONG-CURRENCY', caseId: 'ORD-1001' },
     events: (rows) => rows.map((row) => (row.startsWith('ORD-1001,') ? row.replace(',USD,', ',GBP,') : row)),
   },
   {
     id: 'MUT-02',
     describes: 'one-cent amount drift on a single event',
-    expect: { ruleId: 'VAL-001', caseId: 'ORD-1001' },
+    expect: { ruleId: 'WRONG-AMOUNT', caseId: 'ORD-1001' },
     events: (rows) =>
       rows.map((row) =>
         row.startsWith('ORD-1001,Order Delivered') ? row.replace('12500.00', '12500.01') : row,
@@ -34,13 +34,13 @@ export const MUTATIONS = [
   {
     id: 'MUT-03',
     describes: 'a mandatory lifecycle step dropped by the sync',
-    expect: { ruleId: 'CNF-001', caseId: 'ORD-1002' },
+    expect: { ruleId: 'WRONG-STEPS', caseId: 'ORD-1002' },
     events: (rows) => rows.filter((row) => !row.startsWith('ORD-1002,Order Confirmed')),
   },
   {
     id: 'MUT-04',
     describes: 'event delivered twice by a retry without idempotency',
-    expect: { ruleId: 'CNF-001', caseId: 'ORD-1004' },
+    expect: { ruleId: 'WRONG-STEPS', caseId: 'ORD-1004' },
     events: (rows) => {
       const target = rows.find((row) => row.startsWith('ORD-1004,Order Shipped'));
       return target ? [...rows, target] : rows;
@@ -49,7 +49,7 @@ export const MUTATIONS = [
   {
     id: 'MUT-05',
     describes: 'local wall-clock time written into a UTC field (+05:30)',
-    expect: { ruleId: 'TMP-002', caseId: 'ORD-1002' },
+    expect: { ruleId: 'WRONG-DELIVERY-TIME', caseId: 'ORD-1002' },
     events: (rows) =>
       rows.map((row) =>
         row.startsWith('ORD-1002,Order Delivered')
@@ -60,7 +60,7 @@ export const MUTATIONS = [
   {
     id: 'MUT-06',
     describes: 'future-dated event from a bad clock',
-    expect: { ruleId: 'TMP-001', caseId: 'ORD-1004' },
+    expect: { ruleId: 'FUTURE-DATE', caseId: 'ORD-1004' },
     events: (rows) =>
       rows.map((row) =>
         row.startsWith('ORD-1004,Order Shipped')
@@ -71,13 +71,13 @@ export const MUTATIONS = [
   {
     id: 'MUT-07',
     describes: 'entire order dropped from the sync',
-    expect: { ruleId: 'COM-001', caseId: 'ORD-1005' },
+    expect: { ruleId: 'MISSING-ORDER', caseId: 'ORD-1005' },
     events: (rows) => rows.filter((row) => !row.startsWith('ORD-1005,')),
   },
   {
     id: 'MUT-08',
     describes: 'orphan case with no order behind it',
-    expect: { ruleId: 'REF-001', caseId: 'ORD-8888' },
+    expect: { ruleId: 'EXTRA-ORDER', caseId: 'ORD-8888' },
     events: (rows) => [
       ...rows,
       'ORD-8888,Order Placed,2026-08-21T09:00:00Z,oms_sync,500.00,USD,Ghost Ltd',
@@ -86,13 +86,13 @@ export const MUTATIONS = [
   {
     id: 'MUT-09',
     describes: 'negative amount in the system of record',
-    expect: { ruleId: 'DQ-001', caseId: 'ORD-1001' },
+    expect: { ruleId: 'NEGATIVE-AMOUNT', caseId: 'ORD-1001' },
     orders: (rows) => rows.map((row) => (row.startsWith('ORD-1001,') ? row.replace('12500.00', '-12500.00') : row)),
   },
   {
     id: 'MUT-10',
     describes: 'steps emitted out of sequence',
-    expect: { ruleId: 'TMP-003', caseId: 'ORD-1017' },
+    expect: { ruleId: 'TIME-OUT-OF-ORDER', caseId: 'ORD-1017' },
     events: (rows) =>
       rows.map((row) =>
         row.startsWith('ORD-1017,Order Shipped')
@@ -103,7 +103,7 @@ export const MUTATIONS = [
   {
     id: 'MUT-11',
     describes: 'cart leaked into analytics',
-    expect: { ruleId: 'COM-002', caseId: 'ORD-1014' },
+    expect: { ruleId: 'CART-COPIED', caseId: 'ORD-1014' },
     events: (rows) => [
       ...rows,
       'ORD-1014,Order Placed,2026-08-14T09:05:00Z,oms_sync,-500.00,USD,Alpine Ski House',
@@ -112,7 +112,7 @@ export const MUTATIONS = [
   {
     id: 'MUT-12',
     describes: 'activity name the contract does not declare',
-    expect: { ruleId: 'CNF-002', caseId: 'ORD-1003' },
+    expect: { ruleId: 'UNKNOWN-STEP', caseId: 'ORD-1003' },
     events: (rows) =>
       rows.map((row) =>
         row.startsWith('ORD-1003,Order Shipped') ? row.replace('Order Shipped', 'Order Dispatched') : row,

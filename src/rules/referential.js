@@ -2,7 +2,7 @@ import { SCOPE, SEVERITY } from '../reconcile/engine.js';
 
 export const referentialRules = [
   {
-    id: 'REF-001',
+    id: 'EXTRA-ORDER',
     dimension: 'referential integrity',
     severity: SEVERITY.HIGH,
     scope: SCOPE.CASE,
@@ -25,7 +25,7 @@ export const referentialRules = [
     },
   },
   {
-    id: 'REF-002',
+    id: 'BAD-ORDER-NUMBER',
     dimension: 'referential integrity',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.ORDER,

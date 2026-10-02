@@ -3,7 +3,7 @@ import { ACTIVITIES, STATUSES } from '../domain/lifecycle.js';
 
 export const completenessRules = [
   {
-    id: 'COM-001',
+    id: 'MISSING-ORDER',
     dimension: 'completeness',
     severity: SEVERITY.CRITICAL,
     scope: SCOPE.ORDER,
@@ -37,11 +37,11 @@ export const completenessRules = [
     },
   },
   {
-    id: 'COM-002',
+    id: 'CART-COPIED',
     dimension: 'completeness',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.ORDER,
-    // The inverse of COM-001. A sync that leaks work-in-progress carts into analytics inflates
+    // The inverse of MISSING-ORDER. A sync that leaks work-in-progress carts into analytics inflates
     // order counts and conversion rates, and no rule looking for absence would ever notice.
     title: 'Cart orders must not appear in Analytics',
     contract: 'Carts do not sync.',

@@ -51,6 +51,10 @@ Adding a defect class is five lines in `src/rules/`, not a new branch in a growi
 answers the brief's ask to *"show the method that would catch the ones you didn't think of"*, and it
 gives the LLM in `ai/` a fixed schema to emit against instead of free-form code.
 
+Each rule is **named after the defect it detects** — `MISSING-ORDER`, `WRONG-CURRENCY`,
+`FUTURE-DATE` — the way linters such as ESLint name rules (`no-unused-vars`). A finding then reads
+without a lookup table: `WRONG-CURRENCY on ORD-1008` says everything.
+
 A rule that throws is reported as **errored**, never as passed — a suite that goes green because a
 check crashed is worse than no suite.
 

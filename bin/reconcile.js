@@ -38,7 +38,7 @@ if (wantsJson) {
   console.log(line);
 
   for (const finding of result.defects) {
-    console.log(`[${finding.severity.toUpperCase().padEnd(8)}] ${finding.ruleId}  ${finding.cases.join(', ')}`);
+    console.log(`[${finding.severity.toUpperCase().padEnd(8)}] ${finding.ruleId.padEnd(19)}  ${finding.cases.join(', ')}`);
     console.log(`            ${finding.dimension} - ${finding.summary}`);
   }
 
@@ -46,7 +46,7 @@ if (wantsJson) {
     console.log(line);
     console.log('Observations (not defects):');
     for (const finding of result.observations) {
-      console.log(`[${'INFO'.padEnd(8)}] ${finding.ruleId}  ${finding.cases.join(', ')}  ${finding.summary}`);
+      console.log(`[${'INFO'.padEnd(8)}] ${finding.ruleId.padEnd(19)}  ${finding.cases.join(', ')}  ${finding.summary}`);
     }
   }
 

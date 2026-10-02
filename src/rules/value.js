@@ -4,7 +4,7 @@ import { normaliseName, describeNormalisation } from '../domain/text.js';
 
 export const valueRules = [
   {
-    id: 'VAL-001',
+    id: 'WRONG-AMOUNT',
     dimension: 'value correctness',
     severity: SEVERITY.CRITICAL,
     scope: SCOPE.PAIR,
@@ -29,7 +29,7 @@ export const valueRules = [
     },
   },
   {
-    id: 'VAL-002',
+    id: 'WRONG-CURRENCY',
     dimension: 'value correctness',
     severity: SEVERITY.CRITICAL,
     scope: SCOPE.PAIR,
@@ -56,7 +56,7 @@ export const valueRules = [
     },
   },
   {
-    id: 'VAL-003',
+    id: 'WRONG-NAME',
     dimension: 'value correctness',
     severity: SEVERITY.LOW,
     scope: SCOPE.PAIR,
@@ -84,7 +84,7 @@ export const valueRules = [
     },
   },
   {
-    id: 'VAL-004',
+    id: 'BAD-CURRENCY-CODE',
     dimension: 'value correctness',
     severity: SEVERITY.MEDIUM,
     scope: SCOPE.DATASET,

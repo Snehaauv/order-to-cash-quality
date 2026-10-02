@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T15:59:40.904Z",
+  "generatedAt": "2026-10-02T07:38:32.389Z",
   "model": "claude-sonnet-5",
   "source": "cache-fallback",
   "accepted": [
@@ -10,7 +10,7 @@
       "scope": "order",
       "title": "PromisedDate must not precede CreatedDate",
       "contract": "PromisedDate is the promised delivery date - a commitment made at or after the order is created.",
-      "rationale": "TMP-005 checks DeliveredDate against CreatedDate but nothing checks PromisedDate. A promise dated before the order exists makes every on-time-delivery metric meaningless, and it is the kind of value a backfill or a timezone bug produces.",
+      "rationale": "BAD-OMS-DATES checks DeliveredDate against CreatedDate but nothing checks PromisedDate. A promise dated before the order exists makes every on-time-delivery metric meaningless, and it is the kind of value a backfill or a timezone bug produces.",
       "check": {
         "type": "timestampOrder",
         "earlier": "order.createdDate",
@@ -55,7 +55,7 @@
       "scope": "order",
       "title": "CustomerId must match the documented CUST-## format",
       "contract": "CustomerId string CUST-##",
-      "rationale": "REF-002 asserts the OrderId format but nothing asserts CustomerId. A malformed customer key breaks any join to a customer master.",
+      "rationale": "BAD-ORDER-NUMBER asserts the OrderId format but nothing asserts CustomerId. A malformed customer key breaks any join to a customer master.",
       "check": {
         "type": "matchesPattern",
         "field": "order.customerId",

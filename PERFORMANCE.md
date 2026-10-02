@@ -75,7 +75,7 @@ connects back to Part C:
 1. The generator writes every event it *successfully sent* to a local ledger.
 2. After the run, query the platform for those case IDs.
 3. Run the **same reconciliation rules** from `src/rules/` against sent-vs-stored.
-4. `COM-001` becomes the loss check. `TMP-003` becomes the ordering check.
+4. `MISSING-ORDER` becomes the loss check. `TIME-OUT-OF-ORDER` becomes the ordering check.
 
 The reconciler built for Part C is therefore the oracle for Part D. I would rather reuse one
 definition of correctness than maintain a second, subtly different one inside the load test.

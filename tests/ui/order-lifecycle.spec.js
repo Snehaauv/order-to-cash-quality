@@ -49,7 +49,7 @@ test('the total presented at checkout matches the sum of the line items', async 
   catalogPage,
   checkoutPage,
 }) => {
-  // This is the UI-layer equivalent of VAL-001. An amount that is wrong on screen is wrong in the
+  // This is the UI-layer equivalent of WRONG-AMOUNT. An amount that is wrong on screen is wrong in the
   // OMS and therefore wrong in Analytics - catching it here is three layers cheaper.
   await catalogPage.expectLoaded();
 
