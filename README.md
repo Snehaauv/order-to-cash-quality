@@ -21,7 +21,7 @@ dependencies** and run on a clean clone before `npm install` finishes.
 
 | | |
 |---|---|
-| **11 distinct defects** (13 rule violations) across 11 of 20 orders | `DEFECT_REPORT.md` |
+| **11 orders with defects** (13 findings) out of 20 | `DEFECT_REPORT.md` |
 | **0 false positives** on the 5 cases the contract calls correct | `tests/data/reconciliation.spec.js` |
 | **19 rules** across 6 dimensions, 0 errored | `src/rules/` |
 | **12/12 mutations killed** | `npm run mutation` |

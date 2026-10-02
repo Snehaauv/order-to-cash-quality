@@ -24,21 +24,27 @@ export const renderDefectReport = (result) => {
   lines.push('');
   lines.push('| | |');
   lines.push('|---|---|');
-  lines.push(`| Source rows | ${model.counts.orders} orders |`);
-  lines.push(`| Target rows | ${model.counts.events} events across ${model.counts.cases} cases |`);
-  lines.push(`| Rules executed | ${summary.ruleCount} |`);
+  const lateDeliveries = observations.filter((o) => o.ruleId === 'LATE-DELIVERY').length;
+
+  lines.push(`| Source | ${model.counts.orders} orders |`);
+  lines.push(`| Target | ${model.counts.events} events across ${model.counts.cases} orders |`);
   lines.push(
-    `| Defects | **${summary.distinctDefects} distinct** (${summary.ruleViolations} rule violations) across ${summary.affectedCases.length} cases |`,
+    `| Rules | ${summary.ruleCount} executed, ${summary.rulesTriggered} triggered, ${summary.rulesPassed} passed, ${summary.rulesErrored} errors |`,
   );
-  lines.push(`| Observations (not defects) | ${summary.observationCount} |`);
-  lines.push(`| Rules that errored | ${summary.erroredRules} |`);
-  lines.push('');
   lines.push(
-    `Severity: ${Object.entries(summary.bySeverity).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`,
+    `| Defects | **${summary.distinctDefects} orders with defects** (${summary.ruleViolations} findings - some orders break more than one rule) |`,
+  );
+  lines.push(
+    `| Severity | ${Object.entries(summary.bySeverity).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'} |`,
+  );
+  lines.push(
+    `| Observations | ${lateDeliveries} late deliveries (not defects - the copy is correct, the delivery was slow) |`,
   );
   lines.push('');
+  // Findings, not defects: ORD-1010 has findings in two dimensions, so a per-dimension count of
+  // distinct defects cannot add up to the headline. Labelled as findings so the totals are honest.
   lines.push(
-    `Dimensions: ${Object.entries(summary.byDimension).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`,
+    `Findings by dimension: ${Object.entries(summary.byDimension).map(([k, v]) => `${k} ${v}`).join(', ') || 'none'}`,
   );
   lines.push('');
 
@@ -57,7 +63,7 @@ export const renderDefectReport = (result) => {
   });
   lines.push('');
 
-  lines.push('## Every rule violation');
+  lines.push('## Every finding');
   lines.push('');
   lines.push('| ID | Case(s) | Severity | Dimension | Rule violated |');
   lines.push('|---|---|---|---|---|');

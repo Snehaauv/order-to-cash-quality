@@ -122,7 +122,7 @@ implementation rather than bad tests, which is the right way round.
 `ORD-1010` trips three rules. The first report said "13 defects", inflating the count and inviting
 the fair criticism that the suite cannot tell distinct bugs from corroborating signals.
 
-**Fix:** `groupByRootCause`. The report now says **11 distinct defects, 13 rule violations**, and
+**Fix:** `groupByRootCause`. The report now says **11 orders with defects, 13 findings**, and
 labels ORD-1010 as "3 rules agree".
 
 ### 7. A stray non-ASCII character in generated code

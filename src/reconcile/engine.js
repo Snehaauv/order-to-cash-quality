@@ -147,11 +147,17 @@ export const summarise = ({ findings, errors, executed, ruleCount }) => {
   const defects = findings.filter((f) => f.classification === 'defect');
   const observations = findings.filter((f) => f.classification === 'observation');
 
+  // Severity is counted per distinct defect, not per finding, so the split adds up to the headline
+  // defect count. Counting findings instead gave "4 + 7 + 2 = 13" beside "11 defects", which reads
+  // as an arithmetic error. A defect takes the highest severity of any rule that caught it.
+  const groups = groupByRootCause(defects);
   const bySeverity = SEVERITY_ORDER.reduce((acc, severity) => {
-    const count = defects.filter((f) => f.severity === severity).length;
+    const count = groups.filter((g) => g.severity === severity).length;
     if (count) acc[severity] = count;
     return acc;
   }, {});
+
+  const erroredRuleIds = new Set(errors.map((e) => e.ruleId));
 
   const byDimension = defects.reduce((acc, f) => {
     acc[f.dimension] = (acc[f.dimension] ?? 0) + 1;
@@ -161,7 +167,10 @@ export const summarise = ({ findings, errors, executed, ruleCount }) => {
   return {
     ruleCount,
     rulesRaising: executed.filter((r) => r.raised > 0).length,
-    distinctDefects: groupByRootCause(defects).length,
+    rulesTriggered: executed.filter((r) => r.raised > 0).length,
+    rulesPassed: executed.filter((r) => r.raised === 0 && !erroredRuleIds.has(r.id)).length,
+    rulesErrored: erroredRuleIds.size,
+    distinctDefects: groups.length,
     ruleViolations: defects.length,
     defectCount: defects.length,
     observationCount: observations.length,

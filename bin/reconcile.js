@@ -27,14 +27,24 @@ if (wantsJson) {
   console.log(line);
   console.log('OMS -> Analytics reconciliation');
   console.log(line);
+  const lateDeliveries = result.observations.filter((o) => o.ruleId === 'LATE-DELIVERY').length;
+  const otherObservations = result.observations.length - lateDeliveries;
+
   console.log(
-    `source: ${result.model.counts.orders} orders | target: ${result.model.counts.events} events across ${result.model.counts.cases} cases`,
+    `source:        ${result.model.counts.orders} orders | target: ${result.model.counts.events} events across ${result.model.counts.cases} orders`,
   );
-  console.log(`rules: ${summary.ruleCount} executed, ${summary.rulesRaising} raised at least one finding`);
   console.log(
-    `defects: ${summary.distinctDefects} distinct (${summary.ruleViolations} rule violations)   observations: ${summary.observationCount}   errored rules: ${summary.erroredRules}`,
+    `rules:         ${summary.ruleCount} executed, ${summary.rulesTriggered} triggered, ${summary.rulesPassed} passed, ${summary.rulesErrored} errors`,
   );
-  console.log(`severity: ${Object.entries(summary.bySeverity).map(([k, v]) => `${k} ${v}`).join('  ') || 'none'}`);
+  console.log(
+    `defects:       ${summary.distinctDefects} orders with defects (${summary.ruleViolations} findings - some orders break more than one rule)`,
+  );
+  console.log(
+    `severity:      ${Object.entries(summary.bySeverity).map(([k, v]) => `${k} ${v}`).join('  ') || 'none'}`,
+  );
+  console.log(
+    `observations:  ${lateDeliveries} late deliveries${otherObservations ? `, ${otherObservations} other` : ''} (not defects - the copy is correct, the delivery was slow)`,
+  );
   console.log(line);
 
   for (const finding of result.defects) {
